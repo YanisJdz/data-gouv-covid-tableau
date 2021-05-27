@@ -8,7 +8,6 @@ age = 0 #Tout-âge
 #Ouverture des fichiers dans le répertoires et itération dessus
 for file_name in glob.glob("*.csv"):
 
-    #Lecture du fichier qui suit la logique
     dataFrame = pd.read_csv(file_name, delimiter=";", keep_default_na=False)
 
     dataFrame_out = dataFrame[(dataFrame.reg == region) & (dataFrame.cl_age90 == age)]
