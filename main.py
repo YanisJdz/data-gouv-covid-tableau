@@ -1,3 +1,5 @@
+import sys
+
 import pandas as pd
 import glob
 import datetime
@@ -18,14 +20,16 @@ for file_name in glob.glob("*.csv"):
             if dataFrame_out.iloc[index]['semaine'] == file_date:
                 try:
                     weekly_filtered_dataframe = weekly_filtered_dataframe.append(dataFrame_out.iloc[index])
-                    dates = dataFrame_out.iloc[index]['semaine'].split('-')
-                    next_start = datetime.datetime(int(dates[0]), int(dates[1]), int(dates[2]))
-                    next_ending = datetime.datetime(int(dates[3]), int(dates[4]), int(dates[5]))
-                    next_start = next_start + datetime.timedelta(days=7)
-                    next_ending = next_ending + datetime.timedelta(days=7)
-                    file_date = next_start.strftime("%Y") + '-' + next_start.strftime("%m") + '-' + next_start.strftime(
-                        "%d") + '-' + next_ending.strftime("%Y") + '-' + next_ending.strftime(
-                        "%m") + '-' + next_ending.strftime("%d")
+                    try:
+                        dates = dataFrame_out.iloc[index]['semaine'].split('-')
+                        next_start = datetime.datetime(int(dates[0]), int(dates[1]), int(dates[2]))
+                        next_ending = datetime.datetime(int(dates[3]), int(dates[4]), int(dates[5]))
+                        next_start = next_start + datetime.timedelta(days=7)
+                        next_ending = next_ending + datetime.timedelta(days=7)
+                        file_date = next_start.strftime("%Y") + '-' + next_start.strftime("%m") + '-' + next_start.strftime("%d") + '-' + next_ending.strftime("%Y") + '-' + next_ending.strftime("%m") + '-' + next_ending.strftime("%d")
+                    except ValueError:
+                        print('Error in dates')
+                        sys.exit(1)
                 except ValueError:
                     print('Data missing')
             index += 1
@@ -34,7 +38,7 @@ for file_name in glob.glob("*.csv"):
         try:
             weekly_filtered_dataframe.to_csv('extracted_csv/extracted_' + file_name, header=True, index=False)
             print('File created ! ')
-        except ValueError:
+        except FileNotFoundError:
             print('Error writing file')
 
     except ValueError:
