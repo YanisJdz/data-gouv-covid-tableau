@@ -2,10 +2,12 @@ import sys
 import pandas as pd
 import glob
 import functions
+import os
 
 region = 32  # Hauts de France
 reg_date = '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])-[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$'
 cl_age90 = ['0', '09', '19', '29', '39', '49', '59', '69', '79', '89', '90']
+output_directory = 'extracted_csv/'
 
 # Ouverture des fichiers dans le répertoires et itération dessus
 for file_name in glob.glob("*.csv"):
@@ -36,6 +38,8 @@ for file_name in glob.glob("*.csv"):
         for values in weekly_filtered_dataframe.values:
             for value in values:
                 weekly_filtered_dataframe = weekly_filtered_dataframe.replace(value, functions.replace_dot_by_coma(str(value)))
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
         functions.write_csv(weekly_filtered_dataframe, file_name)
 
     except ValueError:
