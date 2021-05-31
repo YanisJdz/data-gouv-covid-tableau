@@ -1,10 +1,12 @@
 import datetime
 import re
+import os
 
 
-def write_csv(dataframe, file_name):
+def write_csv(dataframe, file_name, output_directory):
     try:
-        # Path("/extracted_csv").mkdir(parents=True, exist_ok=True)
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
         dataframe.to_csv('extracted_csv/hebdo_32_0_' + file_name, header=True, index=False, sep=';')
         print('File created ! ')
     except FileNotFoundError:

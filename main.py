@@ -38,9 +38,7 @@ for file_name in glob.glob("*.csv"):
         for values in weekly_filtered_dataframe.values:
             for value in values:
                 weekly_filtered_dataframe = weekly_filtered_dataframe.replace(value, functions.replace_dot_by_coma(str(value)))
-        if not os.path.exists(output_directory):
-            os.makedirs(output_directory)
-        functions.write_csv(weekly_filtered_dataframe, file_name)
+        functions.write_csv(weekly_filtered_dataframe, file_name,output_directory)
 
     except ValueError:
         print('Error reading csv')
