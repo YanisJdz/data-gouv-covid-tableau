@@ -1,45 +1,42 @@
 import sys
-
 import pandas as pd
 import glob
-import datetime
+import functions
 
 region = 32  # Hauts de France
-age = 0  # Tout-âge
+reg_date = '^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])-[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$'
+cl_age90 = ['0', '09', '19', '29', '39', '49', '59', '69', '79', '89', '90']
 
 # Ouverture des fichiers dans le répertoires et itération dessus
 for file_name in glob.glob("*.csv"):
     try:
-        dataFrame = pd.read_csv(file_name, delimiter=";", keep_default_na=False)
-        dataFrame_out = dataFrame[(dataFrame.reg == region) & (dataFrame.cl_age90 == age)]
-        file_date = dataFrame_out.iloc[0]['semaine']
+        dataframe = pd.read_csv(file_name, delimiter=";", keep_default_na=False)
+        filtered_dataframe = dataframe[(dataframe.reg == region) & (dataframe.cl_age90 == int(cl_age90[0]))]
+        week = filtered_dataframe.iloc[0]['semaine']
         index = 0
-        weekly_filtered_dataframe = pd.DataFrame(columns=dataFrame_out.columns)
+        weekly_filtered_dataframe = pd.DataFrame(columns=filtered_dataframe.columns)
 
-        while index < dataFrame_out.shape[0]:
-            if dataFrame_out.iloc[index]['semaine'] == file_date:
-                try:
-                    weekly_filtered_dataframe = weekly_filtered_dataframe.append(dataFrame_out.iloc[index])
+        while index < filtered_dataframe.shape[0]:
+            current_row = filtered_dataframe.iloc[index]
+            if functions.verify_format_regex(reg_date, current_row['semaine']):
+                if current_row['semaine'] == week:
                     try:
-                        dates = dataFrame_out.iloc[index]['semaine'].split('-')
-                        next_start = datetime.datetime(int(dates[0]), int(dates[1]), int(dates[2]))
-                        next_ending = datetime.datetime(int(dates[3]), int(dates[4]), int(dates[5]))
-                        next_start = next_start + datetime.timedelta(days=7)
-                        next_ending = next_ending + datetime.timedelta(days=7)
-                        file_date = next_start.strftime("%Y") + '-' + next_start.strftime("%m") + '-' + next_start.strftime("%d") + '-' + next_ending.strftime("%Y") + '-' + next_ending.strftime("%m") + '-' + next_ending.strftime("%d")
+                        weekly_filtered_dataframe = weekly_filtered_dataframe.append(
+                            functions.replace_dot_by_coma(current_row))
+                        week = functions.add_week(current_row['semaine'])
                     except ValueError:
-                        print('Error in dates')
-                        sys.exit(1)
-                except ValueError:
-                    print('Data missing')
+                        print('Data missing')
+            else:
+                print('Error in dates')
+                print('Error at index ' + str(index))
+                print("Invalid format. Expected 'YYYY-mm-dd-YYYY-mm-dd' date format, and dates found are '" +
+                      current_row['semaine'] + "'")
+                sys.exit('Cannot write new csv file')
             index += 1
-
-        # Réécriture dans un nouveau fichier csv
-        try:
-            weekly_filtered_dataframe.to_csv('extracted_csv/extracted_' + file_name, header=True, index=False)
-            print('File created ! ')
-        except FileNotFoundError:
-            print('Error writing file')
+        for values in weekly_filtered_dataframe.values:
+            for value in values:
+                weekly_filtered_dataframe = weekly_filtered_dataframe.replace(value, functions.replace_dot_by_coma(str(value)))
+        functions.write_csv(weekly_filtered_dataframe, file_name)
 
     except ValueError:
         print('Error reading csv')
